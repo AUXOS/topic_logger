@@ -523,7 +523,7 @@ void Recorder::doRecord() {
 				break;
 			}
 			boost::xtime xt;
-			boost::xtime_get(&xt, boost::TIME_UTC);
+			boost::xtime_get(&xt, boost::TIME_UTC_);
 			xt.nsec += 250000000;
 			queue_condition_.timed_wait(lock, xt);
 			if (checkDuration(ros::Time::now()))
