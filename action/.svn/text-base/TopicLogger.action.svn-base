@@ -1,0 +1,11 @@
+#goal definition
+string command
+string ID
+string[] selectedTopics
+---
+#result definition
+string downloadURL
+string target_filename
+---
+#feedback
+float32 filesize
