@@ -4,7 +4,7 @@ project(topic_logger)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS actionlib actionlib_msgs roscpp rosbag) 
+find_package(catkin REQUIRED COMPONENTS actionlib actionlib_msgs roscpp rosbag rospy) 
 
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED COMPONENTS system thread regex)
@@ -38,7 +38,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
   LIBRARIES topic_logger
-  #CATKIN_DEPENDS serial auxos_messages
+  CATKIN_DEPENDS actionlib actionlib_msgs roscpp rosbag rospy
   DEPENDS boost
 )
 
@@ -65,12 +65,10 @@ target_link_libraries(topicLogger_server
 ## Install ##
 #############
 
-## Mark executable scripts (Python etc.) for installation
-## not required for python when using catkin_python_setup()
-# install(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+install(PROGRAMS
+  scripts/log_topics.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Mark executables and/or libraries for installation
 install(TARGETS topicLogger_server
@@ -84,6 +82,12 @@ install(DIRECTORY include/topic_logger/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
   FILES_MATCHING PATTERN "*.h"
   PATTERN ".svn" EXCLUDE
+)
+
+install(FILES
+  launch/log_topics.launch
+  launch/topicLogger_server.launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
