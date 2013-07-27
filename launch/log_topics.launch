@@ -3,7 +3,8 @@
 	<node name="LogTopics" pkg="topic_logger" type="log_topics.py" output="screen" required="true">
 
 		<!-- set the BaseURL in order to create the link for the bagfile. -->
-		<param name="topic_list" value="ros_out, /segway/odom"/>
+		<!-- <param name="topic_list" value="ros_out, /segway/odom"/> -->
+		<param name="topic_list" value=""/>
 
 		<param name="topic" value="/topicLogger"/>
 	</node>

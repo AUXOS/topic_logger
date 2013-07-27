@@ -1,57 +1,55 @@
 /*********************************************************************
- *
- * Software License Agreement (BSD License)
- *
- *  Copyright (c) 2010, Robert Bosch LLC.
- *  All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of the Robert Bosch nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- *  POSSIBILITY OF SUCH DAMAGE.
- *
- * Author(s): Ralf Kemp, revised to electric Sarah Osentoski
- *********************************************************************/
+* Software License Agreement (BSD License)
+*
+*  Copyright (c) 2008, Willow Garage, Inc.
+*  All rights reserved.
+*
+*  Redistribution and use in source and binary forms, with or without
+*  modification, are permitted provided that the following conditions
+*  are met:
+*
+*   * Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   * Redistributions in binary form must reproduce the above
+*     copyright notice, this list of conditions and the following
+*     disclaimer in the documentation and/or other materials provided
+*     with the distribution.
+*   * Neither the name of Willow Garage, Inc. nor the names of its
+*     contributors may be used to endorse or promote products derived
+*     from this software without specific prior written permission.
+*
+*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+*  POSSIBILITY OF SUCH DAMAGE.
+********************************************************************/
 
 #ifndef ROSBAG_RECORDER_H
 #define ROSBAG_RECORDER_H
 
 #include <sys/stat.h>
-#include <termios.h>
+#if !defined(_MSC_VER)
+  #include <termios.h>
+  #include <unistd.h>
+#endif
 #include <time.h>
-#include <unistd.h>
 
 #include <queue>
 #include <string>
 #include <vector>
 
+#include <boost/thread.hpp>
 #include <boost/thread/condition.hpp>
 #include <boost/thread/mutex.hpp>
-#include <boost/thread.hpp>
 #include <boost/regex.hpp>
-#include <boost/shared_ptr.hpp>
 
 #include <ros/ros.h>
 #include <ros/time.h>
@@ -61,10 +59,11 @@
 
 #include "rosbag/bag.h"
 #include "rosbag/stream.h"
+#include "rosbag/macros.h"
 
 namespace rosbag {
 
-class OutgoingMessage
+class ROSBAG_DECL OutgoingMessage
 {
 public:
     OutgoingMessage(std::string const& _topic, topic_tools::ShapeShifter::ConstPtr _msg, boost::shared_ptr<ros::M_string> _connection_header, ros::Time _time);
@@ -75,7 +74,7 @@ public:
     ros::Time                           time;
 };
 
-class OutgoingQueue
+class ROSBAG_DECL OutgoingQueue
 {
 public:
     OutgoingQueue(std::string const& _filename, std::queue<OutgoingMessage>* _queue, ros::Time _time);
@@ -85,7 +84,7 @@ public:
     ros::Time                    time;
 };
 
-struct RecorderOptions
+struct ROSBAG_DECL RecorderOptions
 {
     RecorderOptions();
 
@@ -111,12 +110,12 @@ struct RecorderOptions
     std::vector<std::string> topics;
 };
 
-class Recorder
+class ROSBAG_DECL Recorder
 {
 public:
-    Recorder(RecorderOptions const& options);
     Recorder();
 
+    Recorder(RecorderOptions const& options);
 
     void doTrigger();
 
@@ -125,17 +124,14 @@ public:
     boost::shared_ptr<ros::Subscriber> subscribe(std::string const& topic);
 
     int run();
+    void stop();
 
-    void stop(); //stops recording and closes the bagfile
+    float GetFilesize(){return bag_.getSize();};
 
-    void upload(); //loads the bagfile up to a predefined destination via scp
+    std::string GetTargetFilename(){return target_filename_;};
+    std::string GetWriteFilename(){return write_filename_;};
 
-    void deleteFile(); //deletes the local copy of the bagfile (useful after successful upload)
-
-    //need to be public in order to acccess them from the ActionServer
-    std::string                   target_filename_;
     RecorderOptions               options_;
-    Bag                           bag_;
 
 private:
     void printUsage();
@@ -163,14 +159,13 @@ private:
     static std::string timeToStr(T ros_t);
 
 private:
+    boost::thread record_thread;
+    std::vector<boost::shared_ptr<ros::Subscriber> >      subscriber_handles_;  //!< container for subscriber objects
 
-    boost::thread				  record_thread;
-    bool						  stop_;
-    std::vector<boost::shared_ptr<ros::Subscriber> >	  subscriber_handles_;	//!< container for subscriber objects
 
-    //Bag                           bag_;
+    Bag                           bag_;
 
-    //std::string                   target_filename_;
+    std::string                   target_filename_;
     std::string                   write_filename_;
 
     std::set<std::string>         currently_recording_;  //!< set of currenly recording topics
@@ -196,6 +191,8 @@ private:
     boost::mutex                  check_disk_mutex_;
     ros::WallTime                 check_disk_next_;
     ros::WallTime                 warn_next_;
+
+    bool                          stop_;
 };
 
 } // namespace rosbag

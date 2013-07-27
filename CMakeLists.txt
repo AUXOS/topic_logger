@@ -4,7 +4,7 @@ project(topic_logger)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS actionlib actionlib_msgs roscpp rosbag rospy) 
+find_package(catkin REQUIRED COMPONENTS actionlib actionlib_msgs roscpp rosbag rospy auxos_messages) 
 
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED COMPONENTS system thread regex)
@@ -17,16 +17,16 @@ find_package(Boost REQUIRED COMPONENTS system thread regex)
 ## Declare ROS messages and services ##
 #######################################
 
-add_action_files(
-  FILES
-  TopicLogger.action
-)
+# add_action_files(
+#   FILES
+#   TopicLogger.action
+# )
 
-# Generate added messages and services with any dependencies listed here
-generate_messages(
-  DEPENDENCIES
-  actionlib_msgs std_msgs
-)
+# # Generate added messages and services with any dependencies listed here
+# generate_messages(
+#   DEPENDENCIES
+#   actionlib_msgs std_msgs
+# )
 
 ###################################################
 ## Declare things to be passed to other projects ##
@@ -38,7 +38,7 @@ generate_messages(
 catkin_package(
   INCLUDE_DIRS include
   #LIBRARIES topic_logger
-  CATKIN_DEPENDS actionlib actionlib_msgs roscpp rosbag rospy
+  CATKIN_DEPENDS actionlib actionlib_msgs roscpp rosbag rospy auxos_messages
   DEPENDS boost
 )
 

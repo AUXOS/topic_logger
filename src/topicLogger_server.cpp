@@ -37,7 +37,7 @@
 #include <ros/ros.h>
 #include <ros/node_handle.h>
 #include <actionlib/server/simple_action_server.h>
-#include <topic_logger/TopicLoggerAction.h>
+#include <auxos_messages/TopicLoggerAction.h>
 #include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/bind.hpp>
@@ -53,18 +53,16 @@ class TopicLoggerAction
 protected:
 
 	ros::NodeHandle nh_;
-	actionlib::SimpleActionServer<topic_logger::TopicLoggerAction> as_;
+	actionlib::SimpleActionServer<auxos_messages::TopicLoggerAction> as_;
 
 	string action_name_;
 	//create messages that are used to published feedback/result
-	topic_logger::TopicLoggerFeedback feedback_;
-	topic_logger::TopicLoggerResult result_;
+	auxos_messages::TopicLoggerFeedback feedback_;
+	auxos_messages::TopicLoggerResult result_;
 
 	rosbag::Recorder recorder;
 
 public:
-
-	std::string state;
 
 	TopicLoggerAction(string name):
 		as_(nh_, name, boost::bind(&TopicLoggerAction::executeCB, this, _1), false),
@@ -78,88 +76,42 @@ public:
 	{
 	}
 
-	void executeStart(const topic_logger::TopicLoggerGoalConstPtr &goal)
+	void executeCB(const auxos_messages::TopicLoggerGoalConstPtr &goal)
 	{
+
 		//set rate for publishing feedback
 		ros::Rate r(1);
-		//decide what to to considering the current state
-		if (state == "idle")
-		{
+
+		if (goal->selectedTopics.size()==0)
+			recorder.options_.record_all = true;
+		else 
 			recorder.options_.topics = goal->selectedTopics;
-			recorder.run();
-			state = "recording";
-		}
-		else if (state == "recording")
-		{
-			recorder.stop();
-			recorder.deleteFile();
-			recorder.options_.topics = goal->selectedTopics;
-			recorder.run();
-			state = "recording";
-		}
-		else
-		{
-			return;
-		}
+		recorder.run();
+
 		feedback_.filesize = 0.0;
+		feedback_.target_filename = recorder.GetTargetFilename().c_str();
 		while (ros::ok())
 		{
 			//check if preemption is requested
 			if (as_.isPreemptRequested())
 			{
-				as_.setPreempted();
 				break;
 			}
 			else
 			{
 				//publish current filesize as feedback
-				feedback_.filesize = recorder.bag_.getSize();
+				feedback_.filesize = recorder.GetFilesize();
+				feedback_.target_filename = recorder.GetWriteFilename().c_str();
 				as_.publishFeedback(feedback_);
 				r.sleep();
 			}
 		}
-	}
 
-	void executeStop()
-	{
-		state = "uploading";
-
-		ros::NodeHandle nh;
+		ROS_INFO("Closing log file ...");
 		recorder.stop();
-		ROS_INFO("Uploading file ...");
-		recorder.upload();
-		recorder.deleteFile();
-
-		//send result (filename and link) to simple action client
-		result_.target_filename = recorder.target_filename_.c_str();
-		std::string htmllink;
-		result_.downloadURL = "";
-		if(!nh.getParam("BaseURLWebserver_topicLogger", htmllink))
-		{
-			ROS_INFO("Failed to load 'BaseURLWebserver_topicLogger'. No Link available");
-		}
-		else{
-			std::string tmp;
-			tmp = htmllink + recorder.target_filename_;
-			result_.downloadURL = tmp.c_str();
-		}
+		result_.write_filename = recorder.GetTargetFilename().c_str();
 		as_.setSucceeded(result_);
-		ROS_INFO("================================");
 
-		state = "idle";
-	}
-
-	void executeCB(const topic_logger::TopicLoggerGoalConstPtr &goal)
-	{
-		//decide whether recording should be started or stopped
-		if (goal->command == "start")
-		{
-			executeStart(goal);
-		}
-		else if (goal->command == "stop")
-		{
-			executeStop();
-		}
 	}
 };
 
@@ -182,7 +134,6 @@ int main(int argc, char** argv)
 	else ROS_INFO("Failed to load 'localWorkDirectory_topicLogger'.");
 
 	TopicLoggerAction topicLogger(ros::this_node::getName());
-	topicLogger.state = "idle";
 	ros::MultiThreadedSpinner s(10);
 	ros::spin();
 
