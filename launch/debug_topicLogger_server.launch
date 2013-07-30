@@ -11,8 +11,7 @@
 	<param name="URLWebserver_topicLogger" value="www.pr2-remotelab.com:/home/ubuntu/ralf_logger_test" type="str" />
 	<!-- set the BaseURL in order to create the link for the bagfile. -->
 	<param name="BaseURLWebserver_topicLogger" value="http://www.pr2-remotelab.com/ralf_logger_test/" type="str" />
-	launch-prefix="gdb -ex run --args"
 	<!-- Launch the TopicLogger ActionServer -->
-	<node name="topicLogger" pkg="topic_logger" type="topicLogger_server" respawn="false" output="screen" launch-prefix="xterm -e gdb --args"/>
+	<node name="topicLogger" pkg="topic_logger" type="topicLogger_server" respawn="false" output="screen" launch-prefix="gdb -ex run --args"/>
 
 </launch>

@@ -32,9 +32,11 @@ class LogTopics(object):
 
         self.topic = rospy.get_param('~topic','/topicLogger/goal')
 
-
         topics = [x.strip() for x in self.topic_list.split(',')]
+        if (topics==['']):
+            topics=[]
         rospy.loginfo("Topics to record: " + str(topics))
+        rospy.loginfo("Number of topics: " + str(len(topics)))
         rospy.loginfo("Creating actionlib client to send topic list to: " + self.topic)
         self._client=actionlib.SimpleActionClient(self.topic,auxos_messages.msg.TopicLoggerAction)
         rospy.loginfo("Waiting for actionlib server.")

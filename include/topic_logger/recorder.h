@@ -61,7 +61,7 @@
 #include "rosbag/stream.h"
 #include "rosbag/macros.h"
 
-namespace rosbag {
+namespace topic_logger {
 
 class ROSBAG_DECL OutgoingMessage
 {
@@ -96,7 +96,7 @@ struct ROSBAG_DECL RecorderOptions
     bool            append_date;
     bool            snapshot;
     bool            verbose;
-    CompressionType compression;
+    rosbag::CompressionType compression;
     std::string     prefix;
     std::string     name;
     boost::regex    exclude_regex;
@@ -160,10 +160,11 @@ private:
 
 private:
     boost::thread record_thread;
+    ros::Timer check_master_timer;
     std::vector<boost::shared_ptr<ros::Subscriber> >      subscriber_handles_;  //!< container for subscriber objects
 
 
-    Bag                           bag_;
+    rosbag::Bag                           bag_;
 
     std::string                   target_filename_;
     std::string                   write_filename_;

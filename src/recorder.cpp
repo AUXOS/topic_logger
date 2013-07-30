@@ -71,7 +71,7 @@ using std::vector;
 using boost::shared_ptr;
 using ros::Time;
 
-namespace rosbag {
+namespace topic_logger {
 
 // OutgoingMessage
 
@@ -98,7 +98,7 @@ RecorderOptions::RecorderOptions() :
     append_date(true),
     snapshot(false),
     verbose(false),
-    compression(compression::Uncompressed),
+    compression(rosbag::compression::Uncompressed),
     prefix(""),
     name(""),
     exclude_regex(),
@@ -193,9 +193,10 @@ int Recorder::run() {
     else
         record_thread = boost::thread(boost::bind(&Recorder::doRecord, this));
 
-    ros::Timer check_master_timer;
-    if (options_.record_all || options_.regex || (options_.node != std::string("")))
+    //ros::Timer check_master_timer;
+    if (options_.record_all || options_.regex || (options_.node != std::string(""))){
         check_master_timer = nh.createTimer(ros::Duration(1.0), boost::bind(&Recorder::doCheckMaster, this, _1, boost::ref(nh)));
+    }
 
     return exit_code_;
 }
@@ -204,6 +205,9 @@ void Recorder::stop() {
 
 	stop_ = true;
 
+    check_master_timer.stop();
+    ros::Duration(1.2).sleep(); // wait for last execution of check master
+    
 	queue_condition_.notify_all();
 	record_thread.join();
 
@@ -213,6 +217,7 @@ void Recorder::stop() {
 		subscriber_handles_[a]->shutdown();
 	}
 	subscriber_handles_.clear();
+    currently_recording_.clear();
 
 	delete queue_;
 
@@ -241,6 +246,10 @@ bool Recorder::shouldSubscribeToTopic(std::string const& topic, bool from_node) 
     if (isSubscribed(topic)) {
         return false;
     }
+
+    // ignore topics this node generates - anything with topicLogger in name
+    if (topic.find("topicLogger")!=std::string::npos)
+        return false;
 
     // subtract exclusion regex, if any
     if(options_.do_exclude && boost::regex_match(topic, options_.exclude_regex)) {
@@ -379,7 +388,7 @@ void Recorder::startWriting() {
 
     updateFilenames();
     try {
-        bag_.open(write_filename_, bagmode::Write);
+        bag_.open(write_filename_, rosbag::bagmode::Write);
     }
     catch (rosbag::BagException e) {
         ROS_ERROR("Error writing: %s", e.what());
@@ -521,7 +530,7 @@ void Recorder::doRecordSnapshotter() {
         string write_filename  = target_filename + string(".active");
         
         try {
-            bag_.open(write_filename, bagmode::Write);
+            bag_.open(write_filename, rosbag::bagmode::Write);
         }
         catch (rosbag::BagException ex) {
             ROS_ERROR("Error writing: %s", ex.what());

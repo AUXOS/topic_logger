@@ -60,8 +60,7 @@ protected:
 	auxos_messages::TopicLoggerFeedback feedback_;
 	auxos_messages::TopicLoggerResult result_;
 
-	rosbag::Recorder recorder;
-
+	topic_logger::Recorder recorder;
 public:
 
 	TopicLoggerAction(string name):
@@ -69,7 +68,7 @@ public:
 		action_name_(name)
 		{
 				as_.start();
-				ROS_INFO("Server is up");
+				ROS_INFO("Topic Logger Server is up");
 		}
 
 	~TopicLoggerAction(void)
