@@ -2,7 +2,7 @@
 
 	<!-- Set params for the Logging mechanism -->
 	<!-- set the local work directory. Here the bagfiles are stored before uploading them. -->
-	<param name="localWorkDirectory_topicLogger" value="/home/ker1pal/bagfiles" type="str" />
+	<param name="localWorkDirectory_topicLogger" value="/home/hododav/bagfiles" type="str" />
 	<!-- set the directory in which the keyfile is stored. Necessary for scp. -->
 	<param name="keyfileDirectory_topicLogger" value="/home/ker1pal" type="str" />
 	<!-- set the username of the webserver to which the bagfile will be uploaded. -->
