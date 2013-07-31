@@ -23,20 +23,8 @@ class LogTopics(object):
         rospy.init_node('log_topics')
         rospy.on_shutdown(self.on_shutdown)
 
-        # ROS params
-        if (rospy.has_param('~topic_list')):
-            self.topic_list = rospy.get_param('~topic_list','')
-        else:
-            rospy.logerr("Parameter 'topic_list' not set.")
-            return;
-
         self.topic = rospy.get_param('~topic','/topicLogger/goal')
 
-        topics = [x.strip() for x in self.topic_list.split(',')]
-        if (topics==['']):
-            topics=[]
-        rospy.loginfo("Topics to record: " + str(topics))
-        rospy.loginfo("Number of topics: " + str(len(topics)))
         rospy.loginfo("Creating actionlib client to send topic list to: " + self.topic)
         self._client=actionlib.SimpleActionClient(self.topic,auxos_messages.msg.TopicLoggerAction)
         rospy.loginfo("Waiting for actionlib server.")
@@ -45,11 +33,8 @@ class LogTopics(object):
 
         goal = auxos_messages.msg.TopicLoggerGoal()
 
-        goal.command = "start"
-        goal.selectedTopics = topics
-
         self._client.send_goal(goal, self._handle_logging_complete, self._handle_active, self._handle_feedback)
-        rospy.loginfo("Goal sent containing " + str(len(goal.selectedTopics))+ " topics.")
+        rospy.loginfo("Goal sent.")
 
         time.sleep(10)
         self.on_shutdown()

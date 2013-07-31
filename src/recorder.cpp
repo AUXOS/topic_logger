@@ -135,6 +135,7 @@ Recorder::Recorder(RecorderOptions const& options) :
 
 
 bool Recorder::init() {
+    disk_space_ = 0;
 
     last_buffer_warn_ = Time();
     queue_ = new std::queue<OutgoingMessage>;
@@ -545,15 +546,15 @@ bool Recorder::checkDisk() {
         ROS_WARN("Failed to check filesystem stats.");
         return true;
     }
-    unsigned long long free_space = 0;
-    free_space = (unsigned long long) (fiData.f_bsize) * (unsigned long long) (fiData.f_bavail);
-    if (free_space < 1073741824ull)
+    //unsigned long long free_space = 0;
+    disk_space_ = (unsigned long long) (fiData.f_bsize) * (unsigned long long) (fiData.f_bavail);
+    if (disk_space_ < 1073741824ull)
     {
         ROS_ERROR("Less than 1GB of space free on disk with %s.  Disabling recording.", bag_.getFileName().c_str());
         writing_enabled_ = false;
         return false;
     }
-    else if (free_space < 5368709120ull)
+    else if (disk_space_ < 5368709120ull)
     {
         ROS_WARN("Less than 5GB of space free on disk with %s.", bag_.getFileName().c_str());
     }
@@ -575,13 +576,14 @@ bool Recorder::checkDisk() {
         writing_enabled_ = false;
         return false;
     }
-    if ( info.available < 1073741824ull)
+    disk_space_ = info.available;
+    if ( disk_space_ < 1073741824ull)
     {
         ROS_ERROR("Less than 1GB of space free on disk with %s.  Disabling recording.", bag_.getFileName().c_str());
         writing_enabled_ = false;
         return false;
     }
-    else if (info.available < 5368709120ull)
+    else if (disk_space_ < 5368709120ull)
     {
         ROS_WARN("Less than 5GB of space free on disk with %s.", bag_.getFileName().c_str());
         writing_enabled_ = true;

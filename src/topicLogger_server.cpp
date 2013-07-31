@@ -91,6 +91,7 @@ public:
 
 		feedback_.filesize = 0.0;
 		feedback_.target_filename = recorder.GetTargetFilename().c_str();
+		feedback_.disk_space = recorder.GetDiskSpace();
 		while (ros::ok())
 		{
 			//check if preemption is requested
@@ -103,6 +104,7 @@ public:
 				//publish current filesize as feedback
 				feedback_.filesize = recorder.GetFilesize();
 				feedback_.target_filename = recorder.GetWriteFilename().c_str();
+				feedback_.disk_space = recorder.GetDiskSpace();
 				as_.publishFeedback(feedback_);
 				r.sleep();
 			}
@@ -111,6 +113,8 @@ public:
 		ROS_INFO("Closing log file ...");
 		recorder.stop();
 		result_.write_filename = recorder.GetTargetFilename().c_str();
+		result_.disk_space = recorder.GetDiskSpace();
+
 		as_.setSucceeded(result_);
 
 	}

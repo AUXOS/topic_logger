@@ -129,6 +129,7 @@ public:
 
     std::string GetTargetFilename(){return target_filename_;};
     std::string GetWriteFilename(){return write_filename_;};
+    uint64_t GetDiskSpace(){return disk_space_;};
 
     RecorderOptions               options_;
 
@@ -178,6 +179,8 @@ private:
     uint64_t                      max_queue_size_;       //!< max queue size
 
     uint64_t                      split_count_;          //!< split count
+
+    uint64_t                      disk_space_;           //!< free space on disk [bytes]
 
     ros::Time                     last_buffer_warn_;
 
