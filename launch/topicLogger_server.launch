@@ -13,6 +13,6 @@
 	<param name="BaseURLWebserver_topicLogger" value="http://www.pr2-remotelab.com/ralf_logger_test/" type="str" />
 	launch-prefix="gdb -ex run --args"
 	<!-- Launch the TopicLogger ActionServer -->
-	<node name="topicLogger" pkg="topic_logger" type="topicLogger_server" respawn="false" output="screen" launch-prefix="xterm -e gdb --args"/>
+	<node name="topicLogger" pkg="topic_logger" type="topicLogger_server" respawn="false" output="screen"/>
 
 </launch>

@@ -68,6 +68,13 @@ public:
 		action_name_(name)
 		{
 				as_.start();
+				// TODO: read list of topics from launch file
+				//if (goal->selectedTopics.size()==0)
+					recorder.options_.record_all = true;
+				//else 
+				//	recorder.options_.topics = goal->selectedTopics;
+				// TODO: check that init returns true
+				recorder.init();				
 				ROS_INFO("Topic Logger Server is up");
 		}
 
@@ -80,11 +87,6 @@ public:
 
 		//set rate for publishing feedback
 		ros::Rate r(1);
-
-		if (goal->selectedTopics.size()==0)
-			recorder.options_.record_all = true;
-		else 
-			recorder.options_.topics = goal->selectedTopics;
 		recorder.run();
 
 		feedback_.filesize = 0.0;

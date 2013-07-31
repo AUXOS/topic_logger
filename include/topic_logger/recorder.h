@@ -94,7 +94,6 @@ struct ROSBAG_DECL RecorderOptions
     bool            do_exclude;
     bool            quiet;
     bool            append_date;
-    bool            snapshot;
     bool            verbose;
     rosbag::CompressionType compression;
     std::string     prefix;
@@ -117,12 +116,12 @@ public:
 
     Recorder(RecorderOptions const& options);
 
-    void doTrigger();
-
     bool isSubscribed(std::string const& topic) const;
 
     boost::shared_ptr<ros::Subscriber> subscribe(std::string const& topic);
 
+    bool init();
+    void shutdown();
     int run();
     void stop();
 
@@ -144,13 +143,11 @@ private:
     bool scheduledCheckDisk();
     bool checkDisk();
 
-    void snapshotTrigger(std_msgs::Empty::ConstPtr trigger);
     //    void doQueue(topic_tools::ShapeShifter::ConstPtr msg, std::string const& topic, boost::shared_ptr<ros::Subscriber> subscriber, boost::shared_ptr<int> count);
     void doQueue(ros::MessageEvent<topic_tools::ShapeShifter const> msg_event, std::string const& topic, boost::shared_ptr<ros::Subscriber> subscriber, boost::shared_ptr<int> count);
     void doRecord();
     bool checkSize();
     bool checkDuration(const ros::Time&);
-    void doRecordSnapshotter();
     void doCheckMaster(ros::TimerEvent const& e, ros::NodeHandle& node_handle);
 
     bool shouldSubscribeToTopic(std::string const& topic, bool from_node = false);
@@ -181,8 +178,6 @@ private:
     uint64_t                      max_queue_size_;       //!< max queue size
 
     uint64_t                      split_count_;          //!< split count
-
-    std::queue<OutgoingQueue>     queue_queue_;          //!< queue of queues to be used by the snapshot recorders
 
     ros::Time                     last_buffer_warn_;
 
