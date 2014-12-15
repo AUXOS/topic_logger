@@ -50,7 +50,10 @@ catkin_package(
 include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 
 ## Declare a cpp executable
-add_executable(topicLogger_server src/topicLogger_server.cpp src/recorder.cpp)
+add_executable(topicLogger_server 
+                src/topicLogger_server.cpp 
+                src/recorder.cpp
+                include/topic_logger/recorder.h)
 
 ## Add dependencies to the executable
 # add_dependencies(em61node ${PROJECT_NAME})
